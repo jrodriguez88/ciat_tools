@@ -12,7 +12,7 @@ library(jsonlite)
 library(naniar)
 library(tictoc)
 
-#Set arguments
+#Set arguments. Information about params and data access : https://power.larc.nasa.gov/docs/v1/
 path <- getwd()
 params <- c("PRECTOT" , 
             "ALLSKY_SFC_SW_DWN", 
