@@ -258,39 +258,43 @@ day_sample <- function(Season, cat, data, Intial_year, last_year){
 # (F.to.resampling). This function return a tibble with daily sceneries min and max. 
 Find_Summary <- function(daily_by_season){
   # Only the monthly grouping is done.
-  monthly <- daily_by_season %>% 
-    group_by(year) %>% 
-    summarise(monthly = sum(prec)) 
+  monthly <- daily_by_season %>%
+    group_by(year) %>%
+    summarise(monthly = sum(prec))
   
   median <- round(nrow(monthly)/2, 0)
   
   # the minimum and maximum precitation is extracted.
-  Min_Max <-  monthly %>% 
-    arrange(monthly) %>% 
-    slice(c(1, median, n())) %>% 
-    mutate(Type = c('min', 'median', 'max')) %>% 
+  Min_Max <-  monthly %>%
+    arrange(monthly) %>%
+    slice(c(1, median, n())) %>%
+    mutate(Type = c('min', 'median', 'max')) %>%
     dplyr::select(-monthly)
   
-  Lenght <-  daily_by_season %>% 
-    filter(year %in% Min_Max$year) %>% 
-    count(id) %>% 
-    filter(row_number() == 1) %>% 
-    dplyr::select(n) %>% 
+  Lenght <-  daily_by_season %>%
+    filter(year %in% Min_Max$year) %>%
+    count(id) %>%
+    filter(row_number() == 1) %>%
+    dplyr::select(n) %>%
     as.numeric
   
-  Indicators <-  daily_by_season %>% 
-    filter(year %in% Min_Max$year) %>% 
-    dplyr::select(-id) %>% 
-    unique %>%
-    mutate(Type = rep(Min_Max$Type, each = Lenght )) %>% 
+  Indicators <-  daily_by_season %>%
+    filter(year %in% Min_Max$year) %>%
+    dplyr::select(-id) %>%
+    unique %>% nest(-year) %>%
+    mutate(Type = case_when(year == Min_Max$year[Min_Max$Type == 'min'] ~ 'min',
+                            year == Min_Max$year[Min_Max$Type == 'median'] ~ 'median',
+                            year == Min_Max$year[Min_Max$Type == 'max'] ~ 'max')) %>%
+    unnest() %>%
+    # mutate(Type = rep(Min_Max$Type, each = Lenght )) %>%
     nest(-Type)
   
   a <- Indicators %>% filter(Type == 'min') %>% unnest()
   b <- Indicators %>% filter(Type == 'max') %>% unnest()
-
+  
   ab <- bind_cols(a, dplyr::select(b, -Type, -day, -month, -year)) %>%
-  dplyr::mutate(Type = 'mean_mm' , prec = (prec+prec1)/2, tmax = (tmax+tmax1)/2, tmin = (tmin + tmin1)/2 ) %>%
-  dplyr::select(-prec1, -tmin1, -tmax1) %>% nest(-Type)
+    dplyr::mutate(Type = 'mean_mm' , prec = (prec+prec1)/2, tmax = (tmax+tmax1)/2, tmin = (tmin + tmin1)/2 ) %>%
+    dplyr::select(-prec1, -tmin1, -tmax1) %>% nest(-Type)
   
   Indicators <- Indicators %>% bind_rows(., ab)
   
