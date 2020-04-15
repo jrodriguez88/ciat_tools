@@ -552,7 +552,7 @@ function_to_save <- function(station, Esc_all, path_out){
 
 ### jrodriguez88 functions
 ## Graficar Remuestreo 
-plot_prob <- function(pronostico){
+plot_prob <- function(pronostico, id_label = NULL){
   
   pronostico %>% mutate(Type = factor(Type, c("above", "normal", "below")),
                         Season = factor(Season, c('DJF', 'JFM', 'FMA', 'MAM', 'AMJ', 'MJJ', 'JJA', 'JAS', 'ASO', 'SON', 'OND', 'NDJ'))) %>%
@@ -561,6 +561,7 @@ plot_prob <- function(pronostico){
     theme_minimal() +
     scale_fill_manual(values = c(above = "blue", normal = "lightgreen", below = "red")) +
     labs(title = "Prediccion Climatica Estacional", 
+         subtitle = id_label,
          x = "Trimestre",
          y = "Probabilidad (%)")
   
@@ -568,6 +569,11 @@ plot_prob <- function(pronostico){
 }
 
 plot_clima_hist <- function(data_historic, id_label = NULL){
+  
+  #Set Names and labels  
+  var_name = c("rain", "prec", "srad", "tmin", "tmax", "rhum", "wvel")
+  var_label = paste(var_name, c('(mm)', '(mm)', '(MJ/m²d)', '(°C)', '(°C)', '(%)', '(m/s)'))
+  names(var_label) <- var_name
   
   to_monthly <- function(data, ...){
     data %>% 
@@ -672,7 +678,7 @@ plot_resampling <- function(data_resampling, data_historic, id_label = NULL) {
               aes(month, value),
               color = "red", linetype = "twodash", size = 0.50) +
     facet_wrap(var ~ ., scales = "free", labeller = labeller(var = var_label)) +
-    scale_x_continuous(labels = function(x) month.abb[x], breaks = 1:6) +
+    scale_x_continuous(labels = function(x) month.abb[x], breaks = 1:12) +
     scale_fill_manual(values = c(prec = "#619CFF", tmax = "orange1", tmin = "gold2"),
                       labels= c("Precipitacion", "Temperatura Max", "Temperatura Min")) +
     scale_color_manual(values = c(Promedio_Climatologico = "blue", Rango_probable = "red")) +
